@@ -24,16 +24,20 @@ class NeuralNetwork {
 
 		for ($i = 0; $i < count($this->allNeurons); $i++) {
 			for ($j = 0; $j < $_indices[$i]; $j++) {
+
+				$null = null;
+
 				if ($i == 0) {
-					$this->allNeurons[$i][$j] = new \sys\core\ai\Neuron(1,$this->allNeurons[$i+1],null);
+					$this->allNeurons[$i][$j] = new Neuron(1,$this->allNeurons[$i+1],$null);
 				} elseif ($i == (count($this->allNeurons)-1)) {
-					$this->allNeurons[$i][$j] = new \sys\core\ai\Neuron($_indices[$i-1],null,$this->allNeurons[$i-1]);
+					$this->allNeurons[$i][$j] = new Neuron($_indices[$i-1],$null,$this->allNeurons[$i-1]);
 				} else {
-					$this->allNeurons[$i][$j] = new \sys\core\ai\Neuron($_indices[$i-1],$this->allNeurons[$i+1],$this->allNeurons[$i-1]);
+					$this->allNeurons[$i][$j] = new Neuron($_indices[$i-1],$this->allNeurons[$i+1],$this->allNeurons[$i-1]);
 				}
 			}
 		}
 
+		//die;
 		if ($this->debugMode) echo "Layer count for NN: ".(count($this->allNeurons))."\n";
 
 	}
@@ -119,9 +123,12 @@ class Neuron {
 
 	protected $learningCoefficient = 0.25;
 
+	private $debugMode = false;
+
 	public function __construct($valCount, &$_outNeurons, &$_inNeurons) {
-		$this->inputNeurons = $_inNeurons;
-		$this->outputNeurons = $_outNeurons;
+
+		$this->inputNeurons = &$_inNeurons;
+		$this->outputNeurons = &$_outNeurons;
 
 		$this->inputValues = array();
 		$this->inputWeights = array();
@@ -154,12 +161,13 @@ class Neuron {
 	public function updateWeights() {
 		$derivative = $this->calcDerivative();
 
-		if ($this->inputNeurons) {
+		if (!$this->inputNeurons) {
 			for ($i = 0; $i < count($this->inputWeights); $i++) {
 				$this->inputWeights[$i] = $this->inputWeights[$i] + ($this->learningCoefficient * $this->errorSignal * $derivative * $this->inputValues[$i]);
 			}
 		} else {
 			for ($i = 0; $i < count($this->inputWeights); $i++) {
+
 				$this->inputWeights[$i] = $this->inputWeights[$i] + ($this->learningCoefficient * $this->errorSignal * $derivative * $this->inputNeurons[$i]->output);
 			}
 		}
